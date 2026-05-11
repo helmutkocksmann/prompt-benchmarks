@@ -4,6 +4,10 @@ import {
   fp,
 } from "@tscircuit/footprinter"
 
+const GENERATED_TSCIRCUIT_DOCS_URL = "https://docs.tscircuit.com/ai.txt"
+const COMPONENT_TYPES_DOCS_URL =
+  "https://raw.githubusercontent.com/tscircuit/props/main/generated/COMPONENT_TYPES.md"
+
 async function fetchFileContent(url: string): Promise<string> {
   try {
     const response = await fetch(url)
@@ -16,6 +20,15 @@ async function fetchFileContent(url: string): Promise<string> {
   } catch (error) {
     console.error("Error fetching file content:", error)
     throw error
+  }
+}
+
+async function fetchOptionalFileContent(url: string): Promise<string> {
+  try {
+    return await fetchFileContent(url)
+  } catch (error) {
+    console.error("Error fetching optional file content:", error)
+    return ""
   }
 }
 
@@ -33,10 +46,10 @@ export const createLocalCircuitPrompt = async () => {
     "",
   )
 
-  const propsDoc =
-    (await fetchFileContent(
-      "https://raw.githubusercontent.com/tscircuit/props/main/generated/COMPONENT_TYPES.md",
-    )) || ""
+  const [generatedTscircuitDocs, propsDoc] = await Promise.all([
+    fetchOptionalFileContent(GENERATED_TSCIRCUIT_DOCS_URL),
+    fetchFileContent(COMPONENT_TYPES_DOCS_URL),
+  ])
 
   const cleanedPropsDoc = propsDoc
     .split("\n")
@@ -52,6 +65,14 @@ YOU MUST ABIDE BY THE RULES IN THE RULES SECTION
 ## tscircuit API overview
 
 Here's an overview of the tscircuit API:
+
+## Generated tscircuit docs
+
+The following docs are generated from the current tscircuit documentation and should be preferred when they conflict with the hand-written overview below:
+
+${generatedTscircuitDocs.trim()}
+
+## Hand-written tscircuit API overview
 
 <board width="10mm" height="10mm" /> // usually the root component
 <board outline={[{x: 0, y: 0}, {x: 10, y: 0}, {x: 10, y: 10}, {x: 0, y: 10}]} /> // custom shape instead of rectangle
